@@ -1,0 +1,52 @@
+{
+  "version": 3,
+  "prompt_ver": "m27-1",
+  "compress_rounds_max": 2,
+  "backends": {
+    "local": {
+      "ctx_len": 2048,
+      "max_chapters": 8,
+      "reserve_out": 900,
+      "compress_before_chapters": 1,
+      "max_llm_calls": 12,
+      "model_id": "qwen1.5b-q4"
+    },
+    "cloud": {
+      "ctx_len": 32768,
+      "max_chapters": 20,
+      "reserve_out": 1400,
+      "compress_before_chapters": 0,
+      "max_llm_calls": 12,
+      "model_id": "cloud-default"
+    }
+  },
+  "rolling": {
+    "_note": "会中云端增量滚动摘要（主路径）：只发本批新增段落 + 上一轮摘要，禁止重发全文",
+    "prompt_ver": "m28-1",
+    "interval_ms": 120000,
+    "batch_finals": 8,
+    "timeout_ms": 10000,
+    "summary_max_chars": 400
+  },
+  "qa": {
+    "_note": "M3 点名叫答：只发【提问 + 上文 context_chars 字】，不发音频。disable_thinking 必须为 true——实测不关时 reasoning 会吃掉全部 max_tokens、正文为空",
+    "timeout_ms": 10000,
+    "context_chars": 80,
+    "max_output_chars": 120,
+    "max_tokens": 700,
+    "disable_thinking": true,
+    "keep_recent": 3
+  },
+  "pricing": {
+    "_note": "本期未配置单价，不估算费用；如需估算请按 元/千 token 填写 input_per_1k/output_per_1k，实际费用以平台控制台当期账单为准",
+    "currency": "CNY",
+    "default": { "input_per_1k": 0.0, "output_per_1k": 0.0 },
+    "models": {
+      "deepseek-flash": { "input_per_1k": 0.0, "output_per_1k": 0.0 },
+      "deepseek-v4-pro": { "input_per_1k": 0.0, "output_per_1k": 0.0 },
+      "qwen-turbo": { "input_per_1k": 0.0, "output_per_1k": 0.0 },
+      "qwen-plus": { "input_per_1k": 0.0, "output_per_1k": 0.0 },
+      "glm-4-flash": { "input_per_1k": 0.0, "output_per_1k": 0.0 }
+    }
+  }
+}

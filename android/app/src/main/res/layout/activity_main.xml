@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  布局约定（M3.5 重排）：
+
+  1) 设置全部收进「设置」按钮展开的面板（settingsScroll），默认 GONE。
+     面板本身是 ScrollView、高度由 MainActivity.clampSettingsPanel() 限制在屏高 40%，
+     展开后可以上下滑动看完全部选项，且不会把字幕区挤没。
+  2) 常驻控件只有：标题行 / 状态两行 / 开始录音 / 字幕 / 答案卡片 / 章节 / 路径。
+  3) 答案卡片 qaCard 是字幕 FrameLayout 的「兄弟」而不是覆盖层 —— 出现时字幕自动让位，
+     不再被挡住；顶部 qaCardHandle 是拖动手柄，上下拖动改高度、往下拖到底即收起。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ClassMate M4"
+            android:textSize="22sp" />
+
+        <Button
+            android:id="@+id/settingsToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- ===== 设置面板：默认收起，展开后自身可滚 ===== -->
+    <ScrollView
+        android:id="@+id/settingsScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="#0D000000"
+        android:fadeScrollbars="false"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="音频来源（录音开始时生效）"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/audioSourceGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/sourceMic"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="线下声音"
+                    android:textSize="11sp" />
+
+                <RadioButton
+                    android:id="@+id/sourcePlayback"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="媒体音频"
+                    android:textSize="11sp" />
+
+                <RadioButton
+                    android:id="@+id/sourceBoth"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="两者一起"
+                    android:textSize="11sp" />
+            </RadioGroup>
+
+            <!-- 默认开启；看视频学习时关掉，避免每句提问都调云端烧 token -->
+            <CheckBox
+                android:id="@+id/qaAutoCheck"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="自动识别提问并生成答案"
+                android:textSize="12sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="#22000000" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="识别与 AI"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/modelStatusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="模型：检查中…"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/downloadButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="下载识别模型" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/correctionStatusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="校正模型：检查中…"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/correctionDownloadButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="下载校正模型" />
+            </LinearLayout>
+
+            <!-- M2.7 本地 LLM 模型（GGUF，约 1.1 GB，下载到私有目录，不打进 APK） -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/localLlmStatusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="本地模型：检查中…"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/localLlmDownloadButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="下载本地模型" />
+            </LinearLayout>
+
+            <!-- M2.7 AI 策略三档：始终本地 / 自动（默认）/ 云端优先 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/llmStatusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="AI：检查中…"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/llmConfigButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="云端设置" />
+            </LinearLayout>
+
+            <RadioGroup
+                android:id="@+id/llmPolicyGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/llmLocalPolicy"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="始终本地"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/llmAutoPolicy"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="自动(默认)"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/llmCloudPolicy"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="云端优先"
+                    android:textSize="12sp" />
+            </RadioGroup>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="#22000000" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="音频与文件"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- M2.6 音频策略三档：不存 / 临时（默认）/ 长期保留 -->
+            <RadioGroup
+                android:id="@+id/audioPolicyGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioNone"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="不存音频"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/radioTemp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="临时(默认)"
+                    android:textSize="12sp" />
+
+                <RadioButton
+                    android:id="@+id/radioKeep"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="长期保留"
+                    android:textSize="12sp" />
+            </RadioGroup>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="保留"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/keepCountEdit"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="10"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="个，上限"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/maxGbEdit"
+                    android:layout_width="58dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:text="2"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GB"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/storageText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="目录：—"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/exportButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="导出" />
+
+                <Button
+                    android:id="@+id/clearButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="清空音频" />
+
+                <Button
+                    android:id="@+id/notesButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="笔记" />
+
+                <Button
+                    android:id="@+id/replayButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="回放" />
+
+                <Button
+                    android:id="@+id/retryButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="重试处理"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- 单一数据源：第一项同时作为场次标题（sessions.title/course）和 ASR 热词，
+                 逗号后可继续追加人名/术语。 -->
+            <EditText
+                android:id="@+id/hotwordsEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="课堂名 / 课程热词（逗号分隔，第一项为课堂名）"
+                android:inputType="text"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/timeModeCheck"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="显示课堂钟点"
+                    android:textSize="12sp" />
+
+                <CheckBox
+                    android:id="@+id/correctionCheck"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="课后二次校正"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ===== 常驻：状态与开始录音 ===== -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="准备就绪"
+        android:textSize="18sp" />
+
+    <!-- M2.8 会中增量滚动摘要状态（每 2 分钟一批，不阻塞录音） -->
+    <TextView
+        android:id="@+id/rollingStatusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text=""
+        android:textSize="12sp" />
+
+    <Button
+        android:id="@+id/toggleButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="开始录音" />
+
+    <!-- M4：字幕改成逐行列表，点时间戳可滚动/高亮；FrameLayout 承载「回到最新」 -->
+    <FrameLayout
+        android:id="@+id/subtitleFrame"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:minHeight="170dp">
+
+        <ScrollView
+            android:id="@+id/subtitleScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#11000000"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:id="@+id/subtitleList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <Button
+            android:id="@+id/backToLatest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:text="回到最新"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!--
+      M3.5 点名叫答卡片：字幕的兄弟视图，出现时字幕自动缩小而不是被盖住。
+      高度由 MainActivity.clampQaCard() 控制；qaCardHandle 可上下拖动调高度，
+      往下拖到底则收起。内部 qaCardScroll 负责内容滚动，两者手势不冲突。
+    -->
+    <LinearLayout
+        android:id="@+id/qaCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="#F21F2125"
+        android:elevation="6dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/qaCardHandle"
+            android:layout_width="match_parent"
+            android:layout_height="26dp"
+            android:background="#33FFFFFF"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="⋮⋮  拖动调整高度 · 往下拖到底收起"
+                android:textColor="#FFDDDDDD"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/qaCardScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fadeScrollbars="false"
+            android:padding="10dp"
+            android:scrollbars="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/qaCardTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:text="老师点名了"
+                    android:textColor="#FFFFD54F"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/qaCardBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/qaCardNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:textColor="#FFAAAAAA"
+                    android:textSize="11sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="end"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/qaCardCopy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="复制"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/qaCardClose"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="关闭"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/chapterLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="章节（点标题跳转）"
+        android:textSize="12sp" />
+
+    <ScrollView
+        android:id="@+id/chapterScroll"
+        android:layout_width="match_parent"
+        android:layout_height="84dp"
+        android:background="#08000000"
+        android:padding="6dp">
+
+        <LinearLayout
+            android:id="@+id/chapterList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/pathText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="核心版本：加载中"
+        android:textSize="11sp" />
+
+</LinearLayout>

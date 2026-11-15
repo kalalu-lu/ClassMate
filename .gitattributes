@@ -1,0 +1,16 @@
+# Windows 脚本必须用 CRLF，否则 cmd.exe 会把命令切碎
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell 脚本必须用 LF，否则在 Linux / macOS 上会报 bad interpreter
+*.sh text eol=lf
+# gradlew 没有扩展名，不写这条会被 Windows 的 autocrlf 改成 CRLF，Git Bash 里跑不起来
+gradlew text eol=lf
+
+# 二进制文件，不做任何换行转换
+*.jks  binary
+*.so   binary
+*.onnx binary
+*.wav  binary
+*.apk  binary
+*.gguf binary

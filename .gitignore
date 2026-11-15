@@ -1,0 +1,27 @@
+# ---- 构建产物（都不进仓库）----
+build/
+.gradle/
+.cxx/
+.externalNativeBuild/
+.idea/
+*.iml
+local.properties
+
+# ---- 本机调试证据 / 快照 / 日志，不进仓库 ----
+_snapshots/
+_evidence_*/
+build_out*.txt
+toktest.exe
+env.bat
+
+# ---- 体积大的分发物：走 GitHub Releases，不进源码 ----
+dist/
+*.apk
+*.wav
+
+# ---- 系统垃圾 ----
+.DS_Store
+Thumbs.db
+
+# 说明：android/app/keystore/classmate-release.jks 是**故意**要提交的公开开发签名，
+# 不要加进这里（原因见 README「关于签名」）。

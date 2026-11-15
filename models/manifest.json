@@ -1,0 +1,76 @@
+{
+  "_comment": "M2：sherpa-onnx 流式 Paraformer-zh（bilingual zh-en）int8 权重 + tokens + Silero VAD。M2.6 追加可选 SenseVoice 二次校正模型（kind=sensevoice-*，体积以实际下载为准，设为 0 表示跳过大小校验）。urls 按顺序回退。whisper base 仅作可选兜底，不列入自动下载。",
+  "models": [
+    {
+      "name": "encoder.int8.onnx",
+      "kind": "asr-sherpa-encoder",
+      "size_bytes": 165462184,
+      "sha256": "81a70226a8934e6ed92aa1d4fc486b428b5398e2f2619ed4897b7294cab90e9a",
+      "urls": [
+        "https://hf-mirror.com/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en/resolve/main/encoder.int8.onnx",
+        "https://huggingface.co/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en/resolve/main/encoder.int8.onnx"
+      ]
+    },
+    {
+      "name": "decoder.int8.onnx",
+      "kind": "asr-sherpa-decoder",
+      "size_bytes": 71664561,
+      "sha256": "f3cca9f77bb9d93c8fcbfb63ae617b6b1ee96818df3aa3b151c40658fe38594f",
+      "urls": [
+        "https://hf-mirror.com/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en/resolve/main/decoder.int8.onnx",
+        "https://huggingface.co/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en/resolve/main/decoder.int8.onnx"
+      ]
+    },
+    {
+      "name": "tokens.txt",
+      "kind": "asr-sherpa-tokens",
+      "size_bytes": 75756,
+      "sha256": "59aba8873a2ed1e122c25fee421e25f283b63290efbde85c1f01a853d83cb6e6",
+      "urls": [
+        "https://hf-mirror.com/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en/resolve/main/tokens.txt",
+        "https://huggingface.co/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en/resolve/main/tokens.txt"
+      ]
+    },
+    {
+      "name": "silero_vad.onnx",
+      "kind": "vad-silero",
+      "size_bytes": 643854,
+      "sha256": "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+      "urls": [
+        "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx",
+        "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx"
+      ]
+    },
+    {
+      "name": "sensevoice/model.int8.onnx",
+      "kind": "sensevoice-model",
+      "size_bytes": 239233841,
+      "sha256": "",
+      "urls": [
+        "https://hf-mirror.com/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/resolve/main/model.int8.onnx",
+        "https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/resolve/main/model.int8.onnx"
+      ]
+    },
+    {
+      "name": "sensevoice/tokens.txt",
+      "kind": "sensevoice-tokens",
+      "size_bytes": 315894,
+      "sha256": "",
+      "urls": [
+        "https://hf-mirror.com/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/resolve/main/tokens.txt",
+        "https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/resolve/main/tokens.txt"
+      ]
+    },
+    {
+      "name": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "kind": "llm-gguf",
+      "size_bytes": 1117320736,
+      "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+      "urls": [
+        "https://www.modelscope.cn/models/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/master/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        "https://hf-mirror.com/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+      ]
+    }
+  ]
+}
