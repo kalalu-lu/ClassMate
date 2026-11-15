@@ -23,5 +23,8 @@ dist/
 .DS_Store
 Thumbs.db
 
+# ---- 本机一次性上传助手（依赖本机便携版 git，不公开）----
+Upload-to-GitHub.bat
+
 # 说明：android/app/keystore/classmate-release.jks 是**故意**要提交的公开开发签名，
 # 不要加进这里（原因见 README「关于签名」）。
